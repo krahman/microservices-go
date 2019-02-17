@@ -3,12 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
 
-type Response struct {
-	Message string `json:"Message"`
+type responseData struct {
+	Message string `json:"message"`
+}
+
+type requestData struct {
+	Name string `json:"name"`
 }
 
 func main() {
@@ -21,11 +26,23 @@ func main() {
 }
 
 func responseHandler(w http.ResponseWriter, r *http.Request) {
-	response := Response{ Message: "Hello World!"}
-	data, err := json.Marshal(response)
+
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic("Ooops")
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 
-	fmt.Fprint(w, string(data))
+	var request requestData
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	response := responseData{ Message: "Hello World, " +  request.Name}
+
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(response)
 }
