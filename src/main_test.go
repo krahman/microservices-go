@@ -39,7 +39,7 @@ func BenchmarkResponseHandlerReference(b *testing.B) {
 	b.ResetTimer()
 
 	var writer = ioutil.Discard
-	response := ResponseTest{ Message: "Hello World"}
+	response := ResponseTest{Message: "Hello World"}
 
 	for i := 0; i < b.N; i++ {
 		encoder := json.NewEncoder(writer)
