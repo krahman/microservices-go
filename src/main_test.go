@@ -52,11 +52,12 @@ func BenchmarkResponseHandlerReference(b *testing.B) {
 func BenchmarkResponseHandler(b *testing.B) {
 	b.ResetTimer()
 
+	var body = bytes.NewBuffer([]byte(`"Name": "World"`))
 	for i := 0; i < b.N; i++ {
 		r, _ := http.Post(
 			"http://localhost:8000/",
 			"application/json",
-			bytes.NewBuffer([]byte(`"Name"":"World"`)),
+			body,
 		)
 
 		var response responseData
