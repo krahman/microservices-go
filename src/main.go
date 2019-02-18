@@ -19,7 +19,17 @@ type requestData struct {
 const port = 8000
 
 func main() {
+	catHandler()
 	server()
+}
+
+func catHandler() {
+	// To serve a directory on disk (/tmp) under an alternate URL
+	// path (/tmpfiles/), use StripPrefix to modify the request
+	// URL's path before the FileServer sees it:
+	tmpFileServer := http.FileServer(http.Dir("./tmp"))
+	tmpFiles := "/tmpfiles/"
+	http.Handle(tmpFiles, http.StripPrefix(tmpFiles, tmpFileServer))
 }
 
 func server() {
