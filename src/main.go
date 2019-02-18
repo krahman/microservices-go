@@ -16,9 +16,13 @@ type requestData struct {
 	Name string `json:"name"`
 }
 
-func main() {
-	port := 8000
+const port = 8000
 
+func main() {
+	server()
+}
+
+func server() {
 	http.HandleFunc("/", responseHandler)
 
 	log.Printf("Server starting on port %v\n", port)

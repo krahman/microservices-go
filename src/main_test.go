@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"testing"
 )
 
@@ -45,4 +47,25 @@ func BenchmarkResponseHandlerReference(b *testing.B) {
 		encoder := json.NewEncoder(writer)
 		encoder.Encode(&response)
 	}
+}
+
+func BenchmarkResponseHandler(b *testing.B) {
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		r, _ := http.Post(
+			"http://localhost:8000/",
+			"application/json",
+			bytes.NewBuffer([]byte(`"Name"":"World"`)),
+		)
+
+		var response responseData
+		decoder := json.NewDecoder(r.Body)
+
+		_ = decoder.Decode(&response)
+	}
+}
+
+func init() {
+	go server()
 }
