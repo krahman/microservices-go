@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -33,30 +32,44 @@ func catHandler() {
 }
 
 func server() {
-	http.HandleFunc("/", responseHandler)
+	handler := newValidationHandler(newMessageHandler())
+
+	http.Handle("/", handler)
 
 	log.Printf("Server starting on port %v\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), nil))
 }
 
-func responseHandler(w http.ResponseWriter, r *http.Request) {
+type validationHandler struct {
+	next http.Handler
+}
 
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-
+func (h validationHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var request requestData
-	err = json.Unmarshal(body, &request)
+	decoder := json.NewDecoder(r.Body)
+
+	err := decoder.Decode(&request)
 	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		http.Error(rw, "Bad request", http.StatusBadRequest)
 		return
 	}
 
-	response := responseData{ Message: "Hello World, " +  request.Name}
+	h.next.ServeHTTP(rw, r)
+}
 
+func newValidationHandler(next http.Handler) http.Handler {
+	return validationHandler{next: next}
+}
 
-	encoder := json.NewEncoder(w)
+type messageHandler struct {}
+
+func newMessageHandler() http.Handler {
+	return messageHandler{}
+}
+
+func (h messageHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	response := responseData{Message: "hello"}
+
+	encoder := json.NewEncoder(rw)
 	encoder.Encode(response)
 }
