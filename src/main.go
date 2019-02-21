@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"testing"
+	"time"
 )
 
 type responseData struct {
@@ -72,4 +75,18 @@ func (h messageHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	encoder := json.NewEncoder(rw)
 	encoder.Encode(response)
+}
+
+func fetchGoogle(t *testing.T) {
+	r, _ := http.NewRequest("GET", "https://google.com", nil)
+
+	timeoutRequest, cancelFunc := context.WithTimeout(r.Context(), 1* time.Millisecond)
+	defer cancelFunc()
+
+	r = r.WithContext(timeoutRequest)
+
+	_, err := http.DefaultClient.Do(r)
+	if err != nil {
+		fmt.Println("Error", err)
+	}
 }
